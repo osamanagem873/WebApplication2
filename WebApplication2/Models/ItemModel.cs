@@ -10,8 +10,9 @@ namespace WebApplication2.Models
         public string Name { get; set; }
 
         public string Description { get; set; }
-        //[Required(ErrorMessage = "Please enter the category of your item")]
-        //public string Category { get; set; }
+        public Category? Category { get; set; }
+        [Display(Name = "Category")]
+        public int CategoryId { get; set; }
         [Display(Name = "Choose the cover photo of your item")]
         [Required]
         public IFormFile CoverPhoto { get; set; }
@@ -26,6 +27,7 @@ namespace WebApplication2.Models
         public IFormFileCollection GalleryFiles { get; set; }
 
         public List<GalleryModel>? Gallery { get; set; }
+        
 
     }
 }

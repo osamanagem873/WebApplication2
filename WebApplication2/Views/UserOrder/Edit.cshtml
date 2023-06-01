@@ -1,0 +1,82 @@
+﻿@model OrderViewModel
+<h4>@Model.User.FirstName's Order</h4>
+<form asp-action="Edit" asp-controller="UserOrder" >
+    <div hidden="hidden">
+        
+        @for (int i = 0; i < Model.OrderDetails.Count(); i++)
+        {
+
+            @Html.EditorFor(model => model.OrderDetails[i])
+            @Html.EditorFor(model=>model.CreateDate);
+
+        }
+
+        @Html.EditorFor(model => model.User)
+       
+    </div>
+    
+    @if(Model.OrderStatusId !=3)
+    {
+        <select asp-for="@Model.OrderStatusId" asp-items="@ViewBag.OrderStatus">
+            
+
+        </select>
+    }
+    else
+    {
+        <p>@Model.OrderStatus.StatusName</p>
+    }
+
+    
+    
+    <table class="table table-striped">
+        <tr>
+            <th>Product</th>
+            <th>Image</th>
+            <th>Unit Price(INR)</th>
+            <th>Total Price</th>
+           
+        </tr>
+        @foreach (var item in Model.OrderDetails)
+        {
+            <tr>
+                <td>@item.Items.Name</td>
+                <td>
+                    <img class="card-img-top" src="@item.Items.CoverImageUrl" style="width:80px;height:100px">
+                </td>
+                
+                <td>@item.Items.Price X @item.Quantity</td>
+                <td>@(item.Items.Price * item.Quantity)</td>
+
+            </tr>
+        }
+    </table>
+    @if(Model.OrderStatus.Id !=3)
+    {
+        <!-- Button trigger modal -->
+        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal">
+            Launch demo modal
+        </button>
+
+        <!-- Modal -->
+        <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h1 class="modal-title fs-5" id="exampleModalLabel">Modal title</h1>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        ...
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <input type="submit" value="Save Changes" class="btn btn-primary" />
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    }
+    
+</form>

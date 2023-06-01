@@ -19,11 +19,13 @@ namespace WebApplication2.Repository
         {
             var newItem = new Items()
             {
+                CategoryId = model.CategoryId,
                 Name = model.Name,
                 Description = model.Description,
                 Quantity = model.Quantity,
                 Price = model.Price,
                 CoverImageUrl = model.CoverImageUrl,
+
 
             };
 
@@ -49,7 +51,7 @@ namespace WebApplication2.Repository
 
         public async Task<List<ItemModel>> GetAllItems()
         {
-            return await _context.Items
+            return await _context.Items.Include(x=>x.Category)
                  .Select(item => new ItemModel()
                  {
                      Id = item.Id,
@@ -58,21 +60,25 @@ namespace WebApplication2.Repository
                      Price = item.Price,
                      Description = item.Description,
                      CoverImageUrl = item.CoverImageUrl,
+                     CategoryId = item.CategoryId,
+
 
                  }).ToListAsync();
         }
 
         public async Task<ItemModel> GetItemById(int id)
         {
-            return await _context.Items.Where(x => x.Id == id)
+            return await _context.Items.Include(x=>x.Category).Where(x => x.Id == id)
                 .Select(item => new ItemModel()
                 {
+                    
                     
                     Name = item.Name,
                     Description = item.Description,
                     Quantity = item.Quantity,
                     Id=item.Id,
                     Price = item.Price,
+                    CategoryId = item.CategoryId,
                     CoverImageUrl = item.CoverImageUrl,
                     Gallery = item.ItemGallery.Select(g => new GalleryModel()
                     {
@@ -81,6 +87,32 @@ namespace WebApplication2.Repository
                         URL = g.URL
                     }).ToList()
                 }).FirstOrDefaultAsync();
+        }
+        public bool Update(Items item)
+        {
+            _context.Update(item);
+            return Save();
+        }
+        public bool Delete(Items item)
+        {
+            _context.Remove(item);
+            return Save();
+        }
+        public bool Save()
+        {
+            var saved = _context.SaveChanges();
+            return saved > 0;
+        }
+        public async Task<ItemListVM> GetItemByCatId(int id)
+        {
+            ItemListVM vm = new ItemListVM()
+            {
+                Items = await _context.Items.Include(x => x.Category).Where(x => x.CategoryId == id).ToListAsync(),
+                Categories=await _context.Categories.Include(x=>x.Items).Where(x=>x.Id == id).ToListAsync(),
+
+            };
+            return vm;
+             
         }
         public List<Items> Search(string term)
         {

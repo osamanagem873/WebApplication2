@@ -1,5 +1,8 @@
 ﻿@model IEnumerable<ItemModel>
-
+@using Microsoft.AspNetCore.Identity
+@inject RoleManager<IdentityRole> RoleManager
+@inject SignInManager<AppUser> SignInManager
+@inject UserManager<AppUser> UserManager
  <div class="album py-5 bg-light">
     <div class="container">
         <div class="row">
@@ -16,8 +19,19 @@
                 <div class="btn-group">
                   <a type="btn btn-success" asp-controller="Item" asp-action="GetItem" asp-route-id="@item.Id" 
                   class="btn btn-sm btn-outline-secondary">View Details</a>
-                  <a type="btn btn-success" asp-controller="Item" asp-action="Edit" asp-route-id="@item.Id" 
-                  class="btn btn-sm btn-outline-secondary">Edit</a>
+                   @if (SignInManager.IsSignedIn(User) && User.IsInRole("Admin"))
+                    {
+                     <a type="btn btn-success" asp-controller="Item" asp-action="EditProduct" asp-route-id="@item.Id" 
+                     class="btn btn-sm btn-outline-secondary">Edit</a>
+                      <a type="btn btn-success" asp-controller="Item" asp-action="Delete" asp-route-id="@item.Id"
+                      class="btn btn-sm btn-outline-secondary">Delete</a>
+                    }
+                   @if (SignInManager.IsSignedIn(User) && User.IsInRole("Admin") == false)
+                    {
+                     <a type="btn btn-success" onclick="add(@item.Id)" 
+                      class="btn btn-sm btn-outline-secondary">add to cart</a>
+                    }
+                
                 </div>
                 <small class="text-muted">@item.Price $</small>
               </div>
@@ -29,3 +43,26 @@
      </div>
   </div>
  </div>
+
+
+ 
+@section Scripts{
+    <script>
+
+        async function add(itemId) {
+            try {
+                var response = await fetch(`/Cart/AddItem?itemId=${itemId}`);
+                if (response.status == 200) {
+                    var result = await response.json();
+
+                    var cartCountEl = document.getElementById("cartCount");
+                    cartCountEl.innerHTML = result;
+                }
+            }
+            catch (err) {
+                console.log(err);
+            }
+
+        }
+    </script>
+}

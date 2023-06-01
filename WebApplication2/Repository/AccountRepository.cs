@@ -26,7 +26,9 @@ namespace WebApplication2.Repository
                 LastName = userModel.LastName,
                 Email = userModel.Email,
                 UserName = userModel.Email,
-
+                PhoneNumber = userModel.PhoneNumber,
+                Address = userModel.Address,
+                DateOfBirth =userModel.BirthDate
 
             };
             var result =  await _userManager.CreateAsync(user,userModel.Password);

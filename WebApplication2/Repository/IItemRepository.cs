@@ -9,5 +9,10 @@ namespace WebApplication2.Repository
         Task<List<ItemModel>> GetAllItems();
         Task<ItemModel> GetItemById(int id);
         List<Items> Search(string term);
+        public bool Update(Items item);
+        public bool Delete(Items item);
+        public bool Save();
+        Task<ItemListVM> GetItemByCatId(int id);
+
     }
 }
