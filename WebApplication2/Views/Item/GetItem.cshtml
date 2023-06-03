@@ -1,59 +1,85 @@
 ﻿@model ItemModel
-
-<div class="container">
-    <div class="row">
-        <div class="col-md-6">
-       <div id="carouselExampleIndicators" class="carousel slide" data-bs-ride="true">
-          <div class="carousel-indicators">
-              @for(int i=0;i<Model.Gallery.Count();i++)
-                {
-                      <button type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide-to="@i" class="@(i==0 ? "active" : "")" aria-current="true" aria-label="Slide 1"></button>
-                }
-              
-              </div>
-              <div class="carousel-inner">
-                  @for(int i=0;i<Model.Gallery.Count();i++)
-                {
-                     <div class="@(i==0 ? "carousel-item active" : "carousel-item")">
-                         <img src="@Model.Gallery[i].URL" class="d-block w-100" alt="@Model.Gallery[i].Name">
-                    </div> 
-                }
-              </div>
-              <button class="carousel-control-prev" type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide="prev">
-                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-                <span class="visually-hidden">Previous</span>
-              </button>
-              <button class="carousel-control-next" type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide="next">
-                <span class="carousel-control-next-icon" aria-hidden="true"></span>
-                <span class="visually-hidden">Next</span>
-              </button>
-        </div>
-        </div>
+<section class="py-5">
+    <div class="container px-4 px-lg-5 my-5">
+        <div class="row gx-4 gx-lg-5 align-items-center">
             <div class="col-md-6">
-                <div class="row">
-                    <div class="col-md-12">
-                        <h1>@Model.Description</h1>
-                    </div>
-                </div>
-                 <p class="description">
-                            @Model.Description
-                        </p>
+                <div id="carouselExampleIndicators" class="carousel slide card-img-top mb-5 mb-md-0" data-bs-ride="true">
+                    <div class="carousel-indicators">
+                        @for (int i = 0; i < Model.Gallery.Count(); i++)
+                        {
+                            <button type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide-to="@i" class="@(i==0 ? "active" : "")" aria-current="true" aria-label="Slide 1"></button>
+                        }
 
+                    </div>
+                    <div class="carousel-inner">
+                        @for (int i = 0; i < Model.Gallery.Count(); i++)
+                        {
+                            <div class="@(i==0 ? "carousel-item active" : "carousel-item")">
+                                <img src="@Model.Gallery[i].URL" class="card-img-top mb-5 mb-md-0" width="160" height="260" alt="@Model.Gallery[i].Name">
+                            </div>
+                        }
+                    </div>
+                    <button class="carousel-control-prev" type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide="prev">
+                        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                        <span class="visually-hidden">Previous</span>
+                    </button>
+                    <button class="carousel-control-next" type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide="next">
+                        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                        <span class="visually-hidden">Next</span>
+                    </button>
+                </div>
+            </div>
 
-                <div class="row">
-                    <div class="col-md-12">
-                        <p >
-                            @Model.Quantity
-                        </p>
-                    </div>
-                     <div class="row">
-                    <div class="col-md-12">
-                        <p class="description">
-                            @Model.Description
-                        </p>
-                    </div>
+            <div class="col-md-6">
+                @if(Model.Quantity != 0)
+                {
+                    <div class="small mb-1">Availabe</div>
+                }
+                else
+                {
+                    <div class="small mb-1">Currently Unavailable</div>
+                }
+                <h1 class="display-5 fw-bolder">@Model.Name</h1>
+                <div class="fs-5 mb-5">
+                    <span>$@Model.Price</span>
                 </div>
+                <p class="lead">@Model.Description</p>
+                <div class="d-flex">
+                    @if (User.Identity.IsAuthenticated)
+                    {
+                    <button class="btn btn-outline-dark flex-shrink-0" type="button">
+                        <i class="bi-cart-fill me-1" onclick="add(@Model.Id)">Add to Cart</i>
+                        
+                        </button>
+                    }
+                    else
+                    {
+                        <a class="btn btn-outline-dark flex-shrink-0" asp-action="Login" asp-controller="Account"><i class="bi-cart-fill me-1" >Shop Now</i></a>
+                    }
+
                 </div>
-             </div>
+            </div>
+        </div>
     </div>
-</div>
+</section>
+
+@section Scripts{
+<script>
+
+    async function add(itemId) {
+        try {
+            var response = await fetch(`/Cart/AddItem?itemId=${itemId}`);
+            if (response.status == 200) {
+                var result = await response.json();
+
+                var cartCountEl = document.getElementById("cartCount");
+                cartCountEl.innerHTML = result;
+            }
+        }
+        catch (err) {
+            console.log(err);
+        }
+
+    }
+</script>
+}

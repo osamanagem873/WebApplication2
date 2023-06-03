@@ -1,5 +1,12 @@
-﻿ <footer class="border-top footer text-muted">
-        <div class="container">
-            &copy; 2023 - WebApplication1 - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+﻿<footer class="bg-light">
+    <div class="container py-3" style="min-height: @ViewBag.MinHeight;">
+        <div class="row">
+            <div class="col-md-6">
+                <p class="mb-0">&copy; @DateTime.Now.Year Your Website Name</p>
+            </div>
+            <div class="col-md-6 text-md-end">
+                <p class="mb-0">Contact us: <a href="mailto:info@yourwebsite.com">info@yourwebsite.com</a> | +1 800-123-4567</p>
+            </div>
         </div>
-    </footer>
+    </div>
+</footer>

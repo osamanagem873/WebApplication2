@@ -4,7 +4,7 @@ using Newtonsoft.Json;
 using System.Diagnostics;
 using WebApplication2.Data;
 using WebApplication2.Models;
-
+using WebApplication2.Repository;
 
 namespace WebApplication2.Controllers
 {
@@ -12,27 +12,28 @@ namespace WebApplication2.Controllers
     {
         private readonly ILogger<HomeController> _logger;
         private readonly AppDbContext _appDbContext;
+        private readonly IItemRepository _itemRepository;
 
-        public HomeController(ILogger<HomeController> logger , AppDbContext appDbContext)
+        public HomeController(ILogger<HomeController> logger , AppDbContext appDbContext , IItemRepository itemRepository)
         {
             _logger = logger;
             _appDbContext = appDbContext;
+            _itemRepository = itemRepository;
         }
 
-        public ViewResult Index()
+        public async Task<ViewResult> Index()
         {
-            ItemListVM itemListVM = new ItemListVM()
-            {
-                Items = _appDbContext.Items.Include(x => x.Category).ToList(),
-                Categories = _appDbContext.Categories.Include(x => x.Items).ToList()
-            };
-            string CategoryJson = JsonConvert.SerializeObject(itemListVM);
-            HttpContext.Session.SetString("key", CategoryJson);
+            var data = await _itemRepository.GetTopItems();
+            return View(data);
          
-            return View(itemListVM);
+            
         }
 
         public IActionResult Privacy()
+        {
+            return View();
+        }
+        public IActionResult AboutUs()
         {
             return View();
         }

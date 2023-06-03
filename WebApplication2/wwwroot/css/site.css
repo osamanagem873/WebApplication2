@@ -8,20 +8,25 @@ html {
   }
 }
 
+.container-fluid {
+    padding-left: 0;
+    padding-right: 0;
+}
 html {
   position: relative;
   min-height: 100%;
 }
 
 body {
-  margin-bottom: 60px;
+    margin-bottom: 60px;
+    
+
 }
-footer{
-    position : absolute;
-    bottom:0;
-    width:100%;
-    white-space:nowrap;
-    line-height:60px;
+footer {
+    bottom: 0;
+    width: 100%;
+    white-space: nowrap;
+    line-height: 60px;
 }
 /* The side navigation menu */
 .sidenav {

@@ -1,14 +1,31 @@
 ﻿@inject Microsoft.AspNetCore.Identity.SignInManager<AppUser> _signInManager
+<style>
+    #btn1{
+        padding-left:10px;
+        padding-right:0;
+    }
 
+    #btn2 {
+        padding-left: 0px;
+        padding-right: 10px;
+    }
+</style>
 @if (_signInManager.IsSignedIn(User))
 {
-    <li class="nav-item">
-        <a class="nav-link" href="/Cart/GetUserCart">
-            <span id="cartCount" class="badge text-bg-info">0</span>
-            <i class="bi bi-cart4"></i>
+    @if(!User.IsInRole("Admin"))
+    {
+        <li class="nav-item" style="margin-right:10px;">
+        <a class="nav-link position-relative" href="/Cart/GetUserCart">
+            <i class="bi bi-cart4 text-white"></i>
+            <span id="cartCount" class="badge rounded-circle bg-success position-absolute top-0 ms-1 mt-1 translate-middle p-1" style="font-size: 0.8rem;">
+                0
+            </span>
+        </a>
     </li>
+    }
+    
     <li class="btn-group dropdown">
-        <a class="nav-link dropdown-toggle text-dark" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+        <a class="nav-link dropdown-toggle text-white" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
             Hello @(User.FindFirst("UserFirstName").Value + " " + User.FindFirst("UserLastName").Value )
         </a>
            <div class="dropdown-menu" aria-labelledby="navbarDropdown">
@@ -19,9 +36,9 @@
 else
 {
     <li class="nav-item">
-        <a class="btn " asp-controller="Account" asp-action="Login" asp-route-returnUrl="@Context.Request.Path">Login</a>
+        <a class="btn text-white "id="btn1" asp-controller="Account" asp-action="Login" asp-route-returnUrl="@Context.Request.Path">Login</a>
         /
-        <a class="btn" asp-controller="Account" asp-action="Signup">Sign Up</a>
+        <a class="btn text-white" id="btn2" asp-controller="Account" asp-action="Signup">Sign Up</a>
     </li>
 }
 

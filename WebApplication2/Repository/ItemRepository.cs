@@ -65,6 +65,22 @@ namespace WebApplication2.Repository
 
                  }).ToListAsync();
         }
+        public async Task<List<ItemModel>> GetTopItems()
+        {
+            return await _context.Items.Include(x => x.Category)
+                 .Select(item => new ItemModel()
+                 {
+                     Id = item.Id,
+                     Name = item.Name,
+                     Quantity = item.Quantity,
+                     Price = item.Price,
+                     Description = item.Description,
+                     CoverImageUrl = item.CoverImageUrl,
+                     CategoryId = item.CategoryId,
+
+
+                 }).Take(3).ToListAsync();
+        }
 
         public async Task<ItemModel> GetItemById(int id)
         {
