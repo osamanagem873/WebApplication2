@@ -51,12 +51,14 @@
             </tr>
         }
     </table>
+
     @if(Model.OrderStatus.Id !=3)
     {
         <!-- Button trigger modal -->
         <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal">
             Launch demo modal
         </button>
+        <a class="btn" asp-controller="UserOrder" asp-action="DownloadOrderPdf" asp-route-id="@Model.Id">Download Report</a>
 
         <!-- Modal -->
         <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
@@ -72,6 +74,7 @@
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                         <input type="submit" value="Save Changes" class="btn btn-primary" />
+                        
                     </div>
                 </div>
             </div>

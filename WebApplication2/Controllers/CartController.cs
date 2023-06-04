@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using WebApplication2.Repository;
+using WebApplication2.ViewModels;
 
 namespace WebApplication2.Controllers
 {

@@ -2,9 +2,11 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using WebApplication2;
 using WebApplication2.Data;
 using WebApplication2.Models;
 using WebApplication2.Repository;
+using WebApplication2.ViewModels;
 
 namespace WebApplication1.Controllers
 {
@@ -24,13 +26,8 @@ namespace WebApplication1.Controllers
             _webHostEnvironment = webHostEnvironment;
             _appDbContext = appDbContext;
         }
-        [Route("All-Products")]
-        public async Task<ViewResult> GetAllItems()
-        {
-            var data = await _itemRepository.GetAllItems();
+       
 
-            return View(data);
-        }
 
 
         [Authorize(Roles ="Admin")]
@@ -43,6 +40,7 @@ namespace WebApplication1.Controllers
             ViewBag.ItemId = ItemId;
             return View(model);
         }
+
 
 
         [HttpPost]
@@ -86,8 +84,35 @@ namespace WebApplication1.Controllers
 
             return View();
         }
+        public async Task<IActionResult> GetAll(int? categoryId, int page = 1, int pageSize = 12)
+        {
+            var items = _itemRepository.GetAll();
 
-              private async Task<string> UploadImage(string folderPath, IFormFile file)
+            if (categoryId != null)
+            {
+                items = items.Where(i => i.CategoryId == categoryId).ToList();
+            }
+
+            var categories = await _appDbContext.Categories.ToListAsync();
+
+            var pagingInfo = new PagingInfo
+            {
+                CurrentPage = page,
+                ItemsPerPage = pageSize,
+                TotalItems = items.Count()
+            };
+
+            var itemList = new ItemListVM
+            {
+                Items = items.Skip((page - 1) * pageSize).Take(pageSize).ToList(),
+                Categories = categories,
+                PagingInfo = pagingInfo
+            };
+
+            return View(itemList);
+        }
+
+        private async Task<string> UploadImage(string folderPath, IFormFile file)
         {
 
             folderPath += Guid.NewGuid().ToString() + "_" + file.FileName;
@@ -105,28 +130,20 @@ namespace WebApplication1.Controllers
 
             return View(data);
         }
-        public async Task<ViewResult> GetItemsByCatId(int id)
-        {
-            var data = await _itemRepository.GetItemByCatId(id);
-            return View(data);
-        }
+     
         [HttpGet]
-        public IActionResult Search(string term)
-        {
-            var data = _itemRepository.Search(term);
-            return View(data);
-        }
-        [HttpGet]
+        [Authorize(Roles = "Admin")]
         public IActionResult EditProduct(int id)
         {
-            var item = _appDbContext.Items.Include(x => x.Category).Include(x => x.ItemGallery).Select(x => new ItemModel()
+            var item = _appDbContext.Items.Where(x=>x.Id==id).Include(x => x.Category).Include(x => x.ItemGallery).Select(x => new ItemModel()
             {
-                Id = id,
+                
                 Name = x.Name,
                 Price = x.Price,
                 Quantity = x.Quantity,
                 CoverImageUrl = x.CoverImageUrl,
                 Description = x.Description,
+                Discount = x.Discount,
                 CategoryId = x.CategoryId,
                 Gallery = x.ItemGallery.Select(g => new GalleryModel()
                 {
@@ -139,7 +156,9 @@ namespace WebApplication1.Controllers
             ViewBag.Category = new SelectList(_appDbContext.Categories, "Id", "Name" , item.CategoryId);
             return View(item);
         }
+        [Authorize(Roles = "Admin")]
         [HttpPost]
+
         public async Task<IActionResult> EditProduct(ItemModel vm)
         {
             if (ModelState.IsValid)
@@ -186,6 +205,7 @@ namespace WebApplication1.Controllers
                         Name = vm.Name,
                         Price = vm.Price,
                         Quantity = vm.Quantity,
+                        Discount = vm.Discount,
                         Description = vm.Description,
                         CoverImageUrl = vm.CoverImageUrl,
                         CategoryId = vm.CategoryId,
@@ -207,18 +227,20 @@ namespace WebApplication1.Controllers
                 }
 
                 _itemRepository.Update(NewItem);
-                    
+
+                return RedirectToAction("GetAll");
                 
 
             }
-            return RedirectToAction("Index");
+            return View();
 
         }
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Delete(int id)
         {
-            var item = await _appDbContext.Items.Where(x=>id == id).FirstOrDefaultAsync();
+            var item = await _appDbContext.Items.Where(x=>x.Id == id).FirstOrDefaultAsync();
             _itemRepository.Delete(item);
-            return RedirectToAction("GetAllItems");
+            return RedirectToAction("GetAll");
         }
 
 

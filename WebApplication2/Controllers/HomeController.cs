@@ -1,10 +1,13 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using System.Diagnostics;
 using WebApplication2.Data;
 using WebApplication2.Models;
 using WebApplication2.Repository;
+using WebApplication2.ViewModels;
+using X.PagedList;
 
 namespace WebApplication2.Controllers
 {
@@ -23,10 +26,10 @@ namespace WebApplication2.Controllers
 
         public async Task<ViewResult> Index()
         {
-            var data = await _itemRepository.GetTopItems();
+            var data = await _itemRepository.GetDiscountedItems();
             return View(data);
-         
-            
+
+
         }
 
         public IActionResult Privacy()

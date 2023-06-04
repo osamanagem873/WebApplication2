@@ -14,6 +14,8 @@ builder.Services.AddControllersWithViews().AddJsonOptions(options => options.Jso
 builder.Services.AddScoped<IItemRepository, ItemRepository>();
 builder.Services.AddScoped<IAccountRepository, AccountRepository>();
 builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IEmailService, EmailService>();
+builder.Services.Configure<SMTPConfigModel>(builder.Configuration.GetSection("SMTPConfig"));
 builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSession(options =>
 {

@@ -1,4 +1,6 @@
-﻿@model IEnumerable<ItemModel>
+﻿
+@model IEnumerable<ItemModel>
+
 @{
     ViewData["Title"] = "Home Page";
 }
@@ -59,28 +61,37 @@
 </div>
 
 <div class="container marketing">
-    <h3 style="text-align:center">Top Products</h3>
-<div class="row">
+    <h3 style="text-align:center">Top Discounts</h3>
 
+    <div class="containerA swiper">
+        <div class="slide-container">
+            <div class="card-wrapper swiper-wrapper">
 
- 
-        @foreach(var item in Model)
-        {
+             @foreach(var item in Model)
+                {
+                    var discountedPrice = item.Price - (item.Price * item.Discount.Value / 100);
+                    var formattedPrice = discountedPrice.ToString("F2");
+                    <div class="col-lg-4 swiper-slide">
+                        <div style="background-color: #f1f1f1 !important;">
+                            <img class="rounded-circle" width="140" height="140" src="@item.CoverImageUrl" style="object-fit:contain;">
+                        </div>
+                        
+
+                        <h2 class="fw-normal">@item.Name</h2>
+                        <p>Discount by : % @item.Discount</p>
+                        <p class="text-muted me-1"><s>$@item.Price.ToString("F2")</s></p>
+                        <p class="text-danger">$@formattedPrice</p>
+                        <p><a class="btn btn-secondary" asp-controller="Item" asp-action="GetItem" asp-route-id="@item.Id">View details »</a></p>
+                    </div>
+                }
             
-                <div class="col-lg-4">
-                    <img class="rounded-circle" width="140" height="140" src="@item.CoverImageUrl">
+            </div>
+        </div>
+        <div class="swiper-button-next swiper-navBtn"></div>
+        <div class="swiper-button-prev swiper-navBtn"></div>
+        <div class="swiper-pagination"></div>
+    </div>
 
-                    <h2 class="fw-normal">@item.Name</h2>
-                    <p>Price : $@item.Price</p>
-                <p><a class="btn btn-secondary" asp-controller="Item" asp-action="GetItem" asp-route-id="@item.Id">View details »</a></p>
-                </div><!-- /.col-lg-4 -->
-            
-
-            <!-- /.row -->
-            <!-- START THE FEATURETTES -->
-        }
- </div>
-  
 
     <hr class="featurette-divider">
 
@@ -157,5 +168,37 @@
              }
              
          }
+        var swiper = new Swiper(".slide-container", {
+            slidesPerView: 4,
+            spaceBetween: 20,
+            sliderPerGroup: 4,
+            
+            centerSlide: "true",
+            fade: "true",
+            
+            pagination: {
+                el: ".swiper-pagination",
+                clickable: true,
+                dynamicBullets: true,
+            },
+            navigation: {
+                nextEl: ".swiper-button-next",
+                prevEl: ".swiper-button-prev",
+            },
+            breakpoints: {
+                0: {
+                    slidesPerView: 1,
+                },
+                520: {
+                    slidesPerView: 2,
+                },
+                768: {
+                    slidesPerView: 3,
+                },
+                1000: {
+                    slidesPerView: 4,
+                },
+            },
+        });
      </script>
 }

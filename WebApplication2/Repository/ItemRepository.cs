@@ -1,6 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using WebApplication2.Data;
 using WebApplication2.Models;
+using WebApplication2.ViewModels;
+using static iTextSharp.text.pdf.AcroFields;
 
 namespace WebApplication2.Repository
 {
@@ -22,6 +24,7 @@ namespace WebApplication2.Repository
                 CategoryId = model.CategoryId,
                 Name = model.Name,
                 Description = model.Description,
+                Discount = model.Discount,
                 Quantity = model.Quantity,
                 Price = model.Price,
                 CoverImageUrl = model.CoverImageUrl,
@@ -48,10 +51,9 @@ namespace WebApplication2.Repository
         }
 
 
-
-        public async Task<List<ItemModel>> GetAllItems()
+        public async Task<List<ItemModel>> GetDiscountedItems()
         {
-            return await _context.Items.Include(x=>x.Category)
+            return await _context.Items.Where(x=>x.Discount != null).Include(x => x.Category).OrderBy(x => Guid.NewGuid())
                  .Select(item => new ItemModel()
                  {
                      Id = item.Id,
@@ -59,27 +61,12 @@ namespace WebApplication2.Repository
                      Quantity = item.Quantity,
                      Price = item.Price,
                      Description = item.Description,
+                     Discount = item.Discount,
                      CoverImageUrl = item.CoverImageUrl,
                      CategoryId = item.CategoryId,
 
 
                  }).ToListAsync();
-        }
-        public async Task<List<ItemModel>> GetTopItems()
-        {
-            return await _context.Items.Include(x => x.Category)
-                 .Select(item => new ItemModel()
-                 {
-                     Id = item.Id,
-                     Name = item.Name,
-                     Quantity = item.Quantity,
-                     Price = item.Price,
-                     Description = item.Description,
-                     CoverImageUrl = item.CoverImageUrl,
-                     CategoryId = item.CategoryId,
-
-
-                 }).Take(3).ToListAsync();
         }
 
         public async Task<ItemModel> GetItemById(int id)
@@ -94,6 +81,7 @@ namespace WebApplication2.Repository
                     Quantity = item.Quantity,
                     Id=item.Id,
                     Price = item.Price,
+                    Discount = item.Discount,
                     CategoryId = item.CategoryId,
                     CoverImageUrl = item.CoverImageUrl,
                     Gallery = item.ItemGallery.Select(g => new GalleryModel()
@@ -119,16 +107,10 @@ namespace WebApplication2.Repository
             var saved = _context.SaveChanges();
             return saved > 0;
         }
-        public async Task<ItemListVM> GetItemByCatId(int id)
+     
+        public List<Items> GetAll()
         {
-            ItemListVM vm = new ItemListVM()
-            {
-                Items = await _context.Items.Include(x => x.Category).Where(x => x.CategoryId == id).ToListAsync(),
-                Categories=await _context.Categories.Include(x=>x.Items).Where(x=>x.Id == id).ToListAsync(),
-
-            };
-            return vm;
-             
+            return _context.Items.Include(i => i.Category).ToList();
         }
         public List<Items> Search(string term)
         {
@@ -136,5 +118,7 @@ namespace WebApplication2.Repository
                 || b.Description.Contains(term)).ToList();
             return result;
         }
+
+       
     }
 }

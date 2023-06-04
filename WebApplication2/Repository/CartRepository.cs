@@ -181,6 +181,17 @@ namespace WebApplication2.Repository
 
             return cart;
         }
+        public async Task<int> DeleteAllCartItems(string userId)
+        {
+            var cart = await GetCart(userId);
+            if (cart is null)
+                throw new Exception("Invalid cart");
+            var cartDetail = _appDbContext.CartDetails
+                                .Where(a => a.ShoppingCartId == cart.Id).ToList();
+            _appDbContext.CartDetails.RemoveRange(cartDetail);
+            await _appDbContext.SaveChangesAsync();
+            return 0;
+        }
 
         public async Task<int> GetCartItemCount (string userId ="")
         {

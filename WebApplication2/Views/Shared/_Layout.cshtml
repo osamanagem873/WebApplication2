@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" initial-scale=1.0" />
     <title>@ViewData["Title"] - WebApplication2</title>
-
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@9/swiper-bundle.min.css" />
     <link rel="stylesheet" href="/css/site.css" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.9.1/font/bootstrap-icons.css" />
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
@@ -22,6 +22,11 @@
             background-color: #01579b;
             
            
+        }
+
+        #sidenavicon:hover {
+           
+            cursor: pointer;
         }
         .navbar-brand{
             margin-bottom:0;
@@ -69,11 +74,11 @@
                 
                     <a href="/UserOrder/UserOrders" class="text-white">Orders</a>
                     <a asp-controller="Item" asp-action="AddNewItem" class="text-white">Create Product</a>
-                    <a asp-area="Admin" asp-controller="Category" asp-action="Index" class="text-white">Category</a>
+                    <a asp-controller="Category" asp-action="Index" class="text-white">Category</a>
                 
             </div>
 
-            <a class="nav-item" id="sidenavicon" onclick="openNav()"><i class="navbar-toggler-icon bi-list"></i></a>
+                <a class="nav-item" onclick="openNav()"><i class="navbar-toggler-icon bi-list text-white" id="sidenavicon"></i></a>
                 <p class="navbar-brand text-white">E Store</p>
             }
             else
@@ -90,21 +95,15 @@
 
                 <ul class="navbar-nav flex-grow-1">
                     <li class="nav-item">
-                        <a class="nav-link text-white" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
+                        <a class="nav-link text-white" asp-area="" asp-controller="Home" asp-action="Index"><i class="bi bi-house"></i> Home</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link text-white" asp-area="" asp-controller="Home" asp-action="AboutUs">About Us</a>
+                        <a class="nav-link text-white" asp-area="" asp-controller="Home" asp-action="AboutUs"><i class="bi bi-blockquote-left"></i> About Us</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link text-white" asp-area="" asp-controller="Item" asp-action="GetAllItems">All Products</a>
+                        <a class="nav-link text-white" asp-area="" asp-controller="Item" asp-action="GetAll"><i class="bi bi-dpad"></i> Products</a>
                     </li>
-                    <li class="btn-group dropdown">
-                        <a class="nav-link dropdown-toggle text-white" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                            Categories
-                        </a>
-                        @await Component.InvokeAsync("CategoryList")
-                        <vc:category-list></vc:category-list>
-                    </li>
+                
 
                     
                 </ul>
@@ -117,10 +116,10 @@
         <div class="container py-3" style="min-height: @ViewBag.MinHeight;">
             <div class="row">
                 <div class="col-md-6">
-                    <p class="mb-0">&copy; @DateTime.Now.Year Your Website Name</p>
+                    <p class="mb-0">&copy; @DateTime.Now.Year <strong>E Store</strong></p>
                 </div>
                 <div class="col-md-6 text-md-end">
-                    <p class="mb-0">Contact us: <a href="mailto:info@yourwebsite.com">info@yourwebsite.com</a> | +1 800-123-4567</p>
+                    <p class="mb-0"><i class="bi bi-envelope"></i> Contact us: <a href="mailto:info@yourwebsite.com">E_Store@Anything.com</a> | <i class="bi bi-telephone-inbound"></i> +1 800-123-4567</p>
                 </div>
             </div>
         </div>
@@ -132,6 +131,8 @@
 
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/swiper@9/swiper-bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)
 
@@ -164,6 +165,21 @@
                 closeNav();
             });
         });
+        loadCartCount();
+        async function loadCartCount() {
+            try {
+                var response = await fetch(`/Cart/GetTotalItemInCart`);
+                console.log(response)
+                if (response.status == 200) {
+                    var result = await response.json();
+                    var cartCountEl = document.getElementById("cartCount");
+                    cartCountEl.innerHTML = result;
+                }
+            }
+            catch (err) {
+                console.log(err);
+            }
+        }
     </script>
 
 </body>

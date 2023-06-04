@@ -1,62 +1,145 @@
 ﻿@model ItemModel
+
+
+<style>
+    .carousel-control-next, .carousel-control-prev {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        z-index: 1;
+        display: flex;
+        align-items: center;
+        justify-content:right;
+        width: 20%;
+        padding: 0;
+        color: #fff;
+        text-align: center;
+        background: 0 0;
+        border: 0;
+        opacity: .5;
+        transition: opacity .15s ease;
+    }
+
+    .carousel-control-prev {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        z-index: 1;
+        display: flex;
+        align-items: center;
+        justify-content: left;
+        width: 20%;
+        padding: 0;
+        color: #fff;
+        text-align: center;
+        background: 0 0;
+        border: 0;
+        opacity: .5;
+        transition: opacity .15s ease;
+    }
+    .carousel-indicators button {
+        width: 10px;
+        height: 10px;
+        background-color: #bbb;
+        border: none;
+        margin: 0 5px;
+        border-radius: 50%;
+    }
+
+        .carousel-indicators button.active {
+            background-color: #555;
+        }
+
+    .carousel-control-prev-icon, .carousel-control-next-icon {
+        height: 30px;
+        width: 30px;
+        background-size: 100%, 100%;
+        border-radius: 50%;
+        background-image: none;
+    }
+
+    .carousel-control-prev-icon {
+        background-image: url('data:image/svg+xml;charset=UTF-8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="%23000"><path d="M11.354 4.646a.5.5 0 0 0-.708 0L5.793 9.793a.5.5 0 0 0 0 .707l4.853 4.854a.5.5 0 0 0 .708-.707L6.707 10l4.647-4.646a.5.5 0 0 0 0-.708z"/></svg>');
+    }
+
+    .carousel-control-next-icon {
+        background-image: url('data:image/svg+xml;charset=UTF-8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="%23000"><path d="M5.354 4.646a.5.5 0 0 1 .708 0L10.207 9.5l-4.146 4.146a.5.5 0 0 1-.708-.708L9.793 9.5 5.354 5.061a.5.5 0 0 1 0-.708z"/></svg>');
+        background-position: center;
+    }
+</style>
+
 <section class="py-5">
     <div class="container px-4 px-lg-5 my-5">
         <div class="row gx-4 gx-lg-5 align-items-center">
             <div class="col-md-6">
                 <div id="carouselExampleIndicators" class="carousel slide card-img-top mb-5 mb-md-0" data-bs-ride="true">
-                    <div class="carousel-indicators">
+                    <div class="carousel-indicators" style="margin-bottom:0px;">
                         @for (int i = 0; i < Model.Gallery.Count(); i++)
                         {
                             <button type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide-to="@i" class="@(i==0 ? "active" : "")" aria-current="true" aria-label="Slide 1"></button>
                         }
-
                     </div>
                     <div class="carousel-inner">
                         @for (int i = 0; i < Model.Gallery.Count(); i++)
                         {
                             <div class="@(i==0 ? "carousel-item active" : "carousel-item")">
-                                <img src="@Model.Gallery[i].URL" class="card-img-top mb-5 mb-md-0" width="160" height="260" alt="@Model.Gallery[i].Name">
+                                <img src="@Model.Gallery[i].URL" class="card-img-top mb-5 mb-md-0" width="400" height="450" alt="@Model.Gallery[i].Name" style="object-fit:contain;">
                             </div>
                         }
                     </div>
                     <button class="carousel-control-prev" type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide="prev">
-                        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                        <span class="bi bi-caret-left-square text-black" aria-hidden="true"></span>
                         <span class="visually-hidden">Previous</span>
                     </button>
                     <button class="carousel-control-next" type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide="next">
-                        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                        <span class="bi bi-caret-right-square text-black" aria-hidden="true"></span>
                         <span class="visually-hidden">Next</span>
                     </button>
                 </div>
             </div>
 
             <div class="col-md-6">
-                @if(Model.Quantity != 0)
+                @if (Model.Quantity != 0)
                 {
-                    <div class="small mb-1">Availabe</div>
+                    <div class="small mb-1">Available</div>
                 }
                 else
                 {
                     <div class="small mb-1">Currently Unavailable</div>
                 }
-                <h1 class="display-5 fw-bolder">@Model.Name</h1>
-                <div class="fs-5 mb-5">
-                    <span>$@Model.Price</span>
-                </div>
+                <h1 class="display-5 fw-bolder text-primary">@Model.Name</h1>
+                @if (Model.Discount != null)
+                {
+                    @* calculate the discounted price *@
+                    var discountedPrice = Model.Price - (Model.Price * Model.Discount.Value / 100);
+                    var formattedPrice = discountedPrice.ToString("F2");
+
+                    <div class="fs-5 mb-5">
+                        
+                        <span class="text-danger">Discount by @Model.Discount %</span><br/>
+                        <span class="text-muted me-1"><s>$@Model.Price.ToString("F2")</s></span>
+                        <span class="text-danger">$@formattedPrice</span>
+                    </div>
+                }
+                else
+                {
+                    <div class="fs-5 mb-5">
+                        <span>$@Model.Price.ToString("F2")</span>
+                    </div>
+                }
+
                 <p class="lead">@Model.Description</p>
                 <div class="d-flex">
-                    @if (User.Identity.IsAuthenticated)
+                    @if (User.Identity.IsAuthenticated && !User.IsInRole("Admin"))
                     {
-                    <button class="btn btn-outline-dark flex-shrink-0" type="button">
-                        <i class="bi-cart-fill me-1" onclick="add(@Model.Id)">Add to Cart</i>
-                        
+                        <button class="btn btn-outline-dark flex-shrink-0" type="button">
+                            <i class="bi-cart-fill me-1" onclick="add(@Model.Id)">Add to Cart</i>
                         </button>
                     }
-                    else
+                    else if (!User.IsInRole("Admin"))
                     {
-                        <a class="btn btn-outline-dark flex-shrink-0" asp-action="Login" asp-controller="Account"><i class="bi-cart-fill me-1" >Shop Now</i></a>
+                        <a class="btn btn-outline-dark flex-shrink-0" asp-action="Login" asp-controller="Account"><i class="bi-cart-fill me-1">Shop Now</i></a>
                     }
-
                 </div>
             </div>
         </div>
@@ -64,22 +147,20 @@
 </section>
 
 @section Scripts{
-<script>
+    <script>
+        async function add(itemId) {
+            try {
+                var response = await fetch(`/Cart/AddItem?itemId=${itemId}`);
+                if (response.status == 200) {
+                    var result = await response.json();
 
-    async function add(itemId) {
-        try {
-            var response = await fetch(`/Cart/AddItem?itemId=${itemId}`);
-            if (response.status == 200) {
-                var result = await response.json();
-
-                var cartCountEl = document.getElementById("cartCount");
-                cartCountEl.innerHTML = result;
+                    var cartCountEl = document.getElementById("cartCount");
+                    cartCountEl.innerHTML = result;
+                }
+            }
+            catch (err) {
+                console.log(err);
             }
         }
-        catch (err) {
-            console.log(err);
-        }
-
-    }
-</script>
+    </script>
 }
