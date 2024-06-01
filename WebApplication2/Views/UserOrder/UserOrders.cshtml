@@ -1,21 +1,50 @@
 ﻿@model IEnumerable<Order>
 
-   
+
 <div class="container">
-    
+
     @if (Model != null && Model.Count() > 0)
     {
-        
+
         <div>
             <h4>Orders</h4>
             <table class="table table-striped">
-                <tr>
-                    <th>Order Id</th>
-                    <th>Order Date</th>
-                    <th>Order Status</th>
-                    <th>Ordered By</th>
-                    <th>Actions</th>
-                </tr>
+                <thead>
+                    <tr>
+                        <th>
+                            Order Id
+                            <a asp-action="UserOrders" asp-controller="UserOrder"
+                           asp-route-sortOrder="@Html.Raw(ViewBag.IdSortParam)">
+                                @if (ViewBag.IdSortParam == "id_asc")
+                                {
+                                    <i class="bi bi-arrow-up"></i>
+                                }
+                                else
+                                {
+                                    <i class="bi bi-arrow-down"></i>
+                                }
+                            </a>
+                        </th>
+                        <th>
+                            Order Date
+                            <a asp-action="UserOrders" asp-controller="UserOrder"
+                           asp-route-sortOrder="@Html.Raw(ViewBag.DateSortParam)">
+                                @if (ViewBag.DateSortParam == "date_asc")
+                                {
+                                    <i class="bi bi-arrow-up"></i>
+                                }
+                                else
+                                {
+                                    <i class="bi bi-arrow-down"></i>
+                                }
+                            </a>
+                        </th>
+                        <th>Order Status</th>
+                        <th>Ordered By</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
                 @foreach (var order in Model)
                 {
                     <tr>
@@ -25,23 +54,96 @@
                         <td>@order.User.FirstName @order.User.LastName</td>
                         <td>
 
-                            <a asp-action="Edit" asp-controller="UserOrder" asp-route-id="@order.Id"><i class="bi bi-pencil-square"></i></a>
-                            / <a asp-action="DeleteOrder" asp-controller="UserOrder" asp-route-id="@order.Id"><i class="bi bi-x-lg"></i></a>
+                            <a asp-action="OrderDetails" asp-controller="UserOrder" asp-route-id="@order.Id"><i class="bi bi-file-earmark-text"></i></a>
+                            @if (order.OrderStatus.StatusName == "Pending")
+                            {
+                                    <span> /</span> <a asp-action="CancelOrder" asp-controller="UserOrder" asp-route-id="@order.Id" onclick="showCancelOrderModal(event)"><i class="bi bi-x-lg"></i></a>
+
+                                    <div class="modal fade" id="cancelOrderModal" tabindex="-1" role="dialog" aria-labelledby="cancelOrderModalLabel" aria-hidden="true">
+                                        <div class="modal-dialog modal-dialog-centered" role="document">
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <h5 class="modal-title" id="cancelOrderModalLabel">Cancel Order</h5>
+                                                  
+                                                </div>
+                                                <div class="modal-body">
+                                                    Are you sure you want to cancel this order?
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">No</button>
+                                                    <a id="confirmCancelOrderButton" class="btn btn-primary" href="#">Yes</a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                            }
                             
                         </td>
+
                         
-                       
                     </tr>
                 }
+                </tbody>
             </table>
-            
+
         </div>
-            
-     
+        @if (ViewBag.TotalPages > 1)
+        {
+            <div class="row">
+                <div class="col-sm-12 col-md-6">
+                    <p>Page @ViewBag.CurrentPage of @ViewBag.TotalPages</p>
+                </div>
+                <div class="col-sm-12 col-md-6">
+
+                    <ul class="pagination justify-content-end">
+                        @if (ViewBag.CurrentPage == 1)
+                        {
+                            <li class="page-item disabled"><a class="page-link" href="#">Previous</a></li>
+                        }
+                        else
+                        {
+                            <li class="page-item"><a class="page-link" href="@Url.Action("UserOrders", new { sortOrder = ViewBag.CurrentSort, statusFilter = ViewBag.SelectedStatusFilter, page = ViewBag.CurrentPage - 1 })">Previous</a></li>
+                        }
+
+                        @for (int i = 1; i <= ViewBag.TotalPages; i++)
+                        {
+                            if (i == ViewBag.CurrentPage)
+                            {
+                                <li class="page-item active"><a class="page-link" href="#">@i</a></li>
+                            }
+                            else
+                            {
+                                <li class="page-item"><a class="page-link" href="@Url.Action("UserOrders", new { sortOrder = ViewBag.CurrentSort, statusFilter = ViewBag.SelectedStatusFilter, page = i })">@i</a></li>
+                            }
+                        }
+
+                        @if (ViewBag.CurrentPage == ViewBag.TotalPages)
+                        {
+                            <li class="page-item disabled"><a class="page-link" href="#">Next</a></li>
+                        }
+                        else
+                        {
+                            <li class="page-item"><a class="page-link" href="@Url.Action("UserOrders", new { sortOrder = ViewBag.CurrentSort, statusFilter = ViewBag.SelectedStatusFilter, page = ViewBag.CurrentPage + 1 })">Next</a></li>
+                        }
+                    </ul>
+
+                </div>
+            </div>
+        }
+
     }
     else
     {
         <h4>No Orders</h4>
     }
-    
+
 </div>
+@section Scripts{
+    <script>
+        function showCancelOrderModal(event) {
+            event.preventDefault();
+            $('#confirmCancelOrderButton').attr('href', event.currentTarget.href);
+            $('#cancelOrderModal').modal('show');
+        }
+    </script>
+}

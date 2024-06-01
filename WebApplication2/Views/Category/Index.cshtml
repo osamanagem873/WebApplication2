@@ -4,10 +4,10 @@
     ViewData["Title"] = "Index";
 }
 <div class="container" style="margin-bottom:100px;">
-<h1>Index</h1>
+<h1>Categories</h1>
 
 <p>
-    <a asp-action="Create">Create New</a>
+    <a class="btn btn-primary" asp-action="Create">Create New</a>
 </p>
 <table class="table">
     <thead>
@@ -32,7 +32,7 @@
             </td>
             <td>
                 @Html.ActionLink("Edit", "Edit", new {  id=item.Id }) |
-                    |
+                    
                     @Html.ActionLink("Delete", "Delete", new { id=item.Id })
             </td>
         </tr>

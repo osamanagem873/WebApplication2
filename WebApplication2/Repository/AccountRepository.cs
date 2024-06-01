@@ -70,6 +70,10 @@ namespace WebApplication2.Repository
                 await SendForgotPasswordEmail(user, token);
             }
         }
+        public async Task<IdentityResult> ResetPasswordAsync(ResetPasswordViewModel model)
+        {
+            return await _userManager.ResetPasswordAsync(await _userManager.FindByIdAsync(model.UserId), model.Token, model.NewPassword);
+        }
         public async Task SendForgotPasswordEmail(AppUser user, string token)
         {
             string appDomain = _configuration.GetSection("Application:AppDomain").Value;

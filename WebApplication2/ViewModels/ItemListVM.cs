@@ -8,5 +8,6 @@ namespace WebApplication2.ViewModels
         public List<Items> Items { get; set; }
         public List<Category> Categories { get; set; }
         public PagingInfo PagingInfo { get; set; }
+        public string SearchItem { get; set; }
     }
 }

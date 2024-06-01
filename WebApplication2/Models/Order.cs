@@ -13,5 +13,6 @@ namespace WebApplication2.Models
         public bool IsDeleted { get; set; }
         public List<OrderDetails> OrderDetails { get; set; }
         public AppUser User { get; set; }
+        
     }
 }

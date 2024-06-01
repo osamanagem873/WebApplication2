@@ -3,53 +3,183 @@
     ViewData["Title"] = "GetUserCart";
 }
 
-<div style="width:90%;margin:auto" class="mt-2">
+<div class="container">
+
+
+
     @if (Model != null && Model.CartDetails != null && Model.CartDetails.Count > 0)
     {
-        <h5>My Cart</h5>
+        <section class="h-100 gradient-custom">
+            <div class="container py-5">
+                <div class="row d-flex justify-content-center my-4">
+                    <div class="col-md-8">
+                        <div class="card mb-4">
+                            <div class="card-header py-3">
+                                <h5 class="mb-0">Cart - @Model.CartDetails.Count() items</h5>
+                            </div>
+                            <div class="card-body">
+                                <!-- Single item -->
+                                @foreach (var item in Model.CartDetails)
+                                {
+                                    <div class="row">
+                                        <div class="col-lg-3 col-md-12 mb-4 mb-lg-0">
+                                            <!-- Image -->
+                                            <div class="bg-image hover-overlay hover-zoom ripple rounded" data-mdb-ripple-color="light">
+                                                <img src="@item.Items.CoverImageUrl"
+                                                     class="w-100" alt="" />
+                                                <a href="#!">
+                                                    <div class="mask" style="background-color: rgba(251, 251, 251, 0.2)"></div>
+                                                </a>
+                                            </div>
+                                            <!-- Image -->
+                                        </div>
 
-        <table class="table table-striped">
-            <tr>
-                <th>Product</th>
-                <th>Image</th>
-                <th>Unit Price(INR)</th>
-                <th>Total Price</th>
-                <th>Action</th>
-            </tr>
-            @foreach (var item in Model.CartDetails)
-            {
-                <tr>
-                    <td>@item.Items.Name</td>
-                    <td>
-                        <img class="card-img-top" src="@item.Items.CoverImageUrl" style="width:80px;height:100px">
-                    </td>
-                    
-                    <td>@item.Items.Price X @item.Quantity</td>
-                    <td>@(item.Items.Price * item.Quantity)</td>
-                    <td>
-                        <a class="btn btn-info" href="/Cart/AddItem?itemId=@item.ItemsId&&redirect=1">+</a>
-                        <a class="btn btn-info" href="/Cart/Removeitem?itemId=@item.ItemsId">-</a>
-                    </td>
-                    <td>
-                        <a class="btn btn-info" href="/Cart/DeleteCartItem?itemId=@item.ItemsId"><i class="bi bi-trash"></i></a>
-                    </td>
-                </tr>
-            }
-        </table>
+                                        <div class="col-lg-5 col-md-6 mb-4 mb-lg-0">
+                                            <!-- Data -->
+                                            <p><strong>@item.Items.Name</strong></p>
+                                            <p>@item.Items.Description</p>
 
-        <div class="my-2">
-            <h5>Total(INR): </h5>
-            @(Model.CartDetails.Select(item => item.Items.Price * item.Quantity).Sum())
-        </div>
+                                            <a href="/Cart/DeleteCartItem?itemId=@item.ItemsId" class="btn btn-primary btn-sm me-1 mb-2" data-mdb-toggle="tooltip"
+                                                    title="Remove item">
+                                                <i class="bi bi-trash-fill"></i>
+                                            </a>
 
-        <div class="my-2">
-            <a class="btn btn-primary" href="/Cart/Checkout">Checkout</a>
-        </div>
+                                            <!-- Data -->
+                                        </div>
 
+                                        <div class="col-lg-4 col-md-6 mb-4 mb-lg-0">
+                                            <!-- Quantity -->
+                                            <div class="d-flex mb-4" style="max-width: 300px">
+                                                <a class="btn btn-primary px-3 ms-2" style="margin-bottom:30px;" href="/Cart/Removeitem?itemId=@item.ItemsId">
+                                                    <i class="bi bi-dash-lg"></i>
+                                                </a>
+
+                                                <div class="form-outline" style="padding-left:10px; padding-right:10px;">
+                                                    <input asp-for="@item.Quantity" id="for@(item.ItemsId)" min="0" name="quantity" type="number" data-item-id="@item.ItemsId" class="form-control" />
+                                                    <label class="form-label" for="form@(item.ItemsId)">Quantity</label>
+                                                </div>
+                                                <a class="btn btn-primary px-3 me-2" style="margin-bottom:30px;" href="/Cart/AddItem?itemId=@item.ItemsId&&redirect=1">
+                                                    <i class="bi bi-plus-lg"></i>
+                                                </a>
+                                              
+                                            </div>
+                                            <!-- Quantity -->
+                                            <!-- Price -->
+                                            <p class="text-start text-md-center">
+                                                @if (item.Quantity >= item.Items.Quantity)
+                                                {
+                                                   
+                                                    <span class="text-sm-center text-danger">you have reached the maximum quantiy</span>
+                                                    <br />
+
+                                                }
+                                                Unit Price: <strong>$@item.UnitPrice</strong> <br />
+                                                Total Price: <strong>
+                                                    $@(
+                                                       item.UnitPrice * item.Quantity
+                                                       )
+                                                </strong>
+                                            </p>
+                                            <!-- Price -->
+                                        </div>
+                                    </div>
+                                    <hr class="my-4" />
+                                }
+                                <!-- Single item -->
+
+
+
+
+                            </div>
+                        </div>
+                        @if (ViewBag.TotalPages > 1)
+                        {
+                            <div class="row">
+                                <div class="col-sm-12 col-md-6">
+                                    <p>Page @ViewBag.CurrentPage of @ViewBag.TotalPages</p>
+                                </div>
+                                <div class="col-sm-12 col-md-6">
+
+                                    <ul class="pagination justify-content-end">
+                                        @if (ViewBag.CurrentPage == 1)
+                                        {
+                                            <li class="page-item disabled"><a class="page-link" href="#">Previous</a></li>
+                                        }
+                                        else
+                                        {
+                                            <li class="page-item"><a class="page-link" href="@Url.Action("GetUserCart", new {page = ViewBag.CurrentPage - 1 })">Previous</a></li>
+                                        }
+
+                                        @for (int i = 1; i <= ViewBag.TotalPages; i++)
+                                        {
+                                            if (i == ViewBag.CurrentPage)
+                                            {
+                                                <li class="page-item active"><a class="page-link" href="#">@i</a></li>
+                                            }
+                                            else
+                                            {
+                                                <li class="page-item"><a class="page-link" href="@Url.Action("GetUserCart", new {page = i })">@i</a></li>
+                                            }
+                                        }
+
+                                        @if (ViewBag.CurrentPage == ViewBag.TotalPages)
+                                        {
+                                            <li class="page-item disabled"><a class="page-link" href="#">Next</a></li>
+                                        }
+                                        else
+                                        {
+                                            <li class="page-item"><a class="page-link" href="@Url.Action("GetUserCart", new {page = ViewBag.CurrentPage + 1 })">Next</a></li>
+                                        }
+                                    </ul>
+
+                                </div>
+                            </div>
+                        }
+
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card mb-4">
+                            <div class="card-header py-3">
+                                <h5 class="mb-0">Summary</h5>
+                            </div>
+                            <div class="card-body">
+                                <ul class="list-group list-group-flush">
+                                    <li class="list-group-item d-flex justify-content-between align-items-center border-0 px-0 pb-0">
+                                        Products :
+                                        <span>
+                                            $@(
+                                               Model.CartDetails.Select(item => item.Items.Price * item.Quantity).Sum()
+                                               )
+                                        </span>
+                                    </li>
+                                    <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                                        Shipping :
+                                        <span>$10</span>
+                                    </li>
+                                    <li class="list-group-item d-flex justify-content-between align-items-center border-0 px-0 mb-3">
+                                        <div>
+                                            <strong>Total amount :</strong>
+
+                                        </div>
+                                        <span><strong>$@(Model.CartDetails.Select(item => item.Items.Price * item.Quantity).Sum() + 10)</strong></span>
+                                    </li>
+                                    <li class="list-group-item d-flex justify-content-between align-items-center ">
+                                        <a class="btn btn-primary btn-lg btn-block" style="width:100%;" href="/Cart/Checkout">
+                                            Place The Order
+                                        </a>
+                                    </li>
+                                </ul>
+
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
     }
     else
     {
         <h5>Cart is empty</h5>
     }
 </div>
-

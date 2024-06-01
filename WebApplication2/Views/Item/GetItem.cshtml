@@ -105,7 +105,7 @@
                 }
                 else
                 {
-                    <div class="small mb-1">Currently Unavailable</div>
+                    <div class="text-danger mb-1">Currently Unavailable</div>
                 }
                 <h1 class="display-5 fw-bolder text-primary">@Model.Name</h1>
                 @if (Model.Discount != null)
@@ -130,13 +130,13 @@
 
                 <p class="lead">@Model.Description</p>
                 <div class="d-flex">
-                    @if (User.Identity.IsAuthenticated && !User.IsInRole("Admin"))
+                    @if (User.Identity.IsAuthenticated && !User.IsInRole("Admin") && Model.Quantity !=0)
                     {
                         <button class="btn btn-outline-dark flex-shrink-0" type="button">
                             <i class="bi-cart-fill me-1" onclick="add(@Model.Id)">Add to Cart</i>
                         </button>
                     }
-                    else if (!User.IsInRole("Admin"))
+                    else if (!User.Identity.IsAuthenticated)
                     {
                         <a class="btn btn-outline-dark flex-shrink-0" asp-action="Login" asp-controller="Account"><i class="bi-cart-fill me-1">Shop Now</i></a>
                     }
@@ -150,7 +150,7 @@
     <script>
         async function add(itemId) {
             try {
-                var response = await fetch(`/Cart/AddItem?itemId=${itemId}`);
+                var response = await fetch(`/Cart/AddItem?itemId=${@Model.Id}`);
                 if (response.status == 200) {
                     var result = await response.json();
 

@@ -24,10 +24,12 @@
                     <div class="card">
                         <div class="card-body py-5 px-md-5">
                             <form method="post">
+                                <div asp-validation-summary="All" class="text-danger"></div>
                                 <!-- Email input -->
                                 <div class="form-outline mb-4">
                                     <label asp-for="Email" class="form-label" for="form1Example13">Email address</label>
                                     <input asp-for="Email" type="email" id="form1Example13" class="form-control form-control-lg" />
+                                    <span asp-validation-for="Email" class="text-danger"></span>
 
                                 </div>
 
@@ -35,6 +37,7 @@
                                 <div class="form-outline mb-4">
                                     <label asp-for="Password"></label>
                                     <input asp-for="Password" class="form-control form-control-lg" />
+                                    <span asp-validation-for="Password" class="text-danger"></span>
 
                                 </div>
 

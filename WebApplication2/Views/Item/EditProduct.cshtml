@@ -8,6 +8,15 @@
 <div class="container" style="margin-bottom:100px;">
     <h3 class="display-4">Edit</h3>
     <hr />
+    @if (ViewBag.IsSuccess == true)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <strong>Success</strong> The product details have been updated. <br />
+            Click <a asp-controller="Item" asp-action="GetItem" asp-route-id="@ViewBag.ItemId">here</a> to view the details
+
+        </div>
+    }
+    <div class="col-md-8">
     <form method="post" enctype="multipart/form-data" asp-action="EditProduct" asp-controller="Item">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
          
@@ -64,7 +73,7 @@
                 <input type="submit" value="Save Changes" class="btn btn-primary" />
             </div>
         </form>
-    
+    </div>
 </div>
 
 <div>

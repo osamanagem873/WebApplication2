@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using WebApplication1.Controllers;
 using WebApplication2.Repository;
 using WebApplication2.ViewModels;
 
@@ -34,9 +35,15 @@ namespace WebApplication2.Controllers
             return RedirectToAction("GetUserCart");
         }
 
-        public async Task<IActionResult> GetUserCart(string userId)
+        public async Task<IActionResult> GetUserCart(string userId, int page = 1, int pageSize = 3)
         { 
             var cart = await _cartRepository.GetUserCart(userId);
+            int totalItems = cart.CartDetails.Count();
+            ViewBag.CurrentPage = page;
+            ViewBag.PageSize = pageSize;
+            ViewBag.TotalItems = totalItems;
+            ViewBag.TotalPages = (int)Math.Ceiling((double)totalItems / pageSize);
+            cart.CartDetails= cart.CartDetails.Skip((page - 1) * pageSize).Take(pageSize).ToList();
             return View(cart);
         }
 
@@ -50,9 +57,14 @@ namespace WebApplication2.Controllers
         public async Task<IActionResult> Checkout()
         {
             bool isCheckedOut = await _cartRepository.DoCheckout();
-            if (!isCheckedOut)
+            if (isCheckedOut)
+            {
+                return RedirectToAction("Index", "Home", new { success = true, checkout = true });
+            }
+            else
+            {
                 throw new Exception("Something happened in server side");
-            return RedirectToAction("Index", "Home");
+            }
         }
     }
 }

@@ -75,7 +75,6 @@ namespace WebApplication2.Repository
 
         public async Task<int> RemoveItem(int itemId)
         {
-            //using var transaction = _db.Database.BeginTransaction();
             string userId = GetUserId();
             try
             {
@@ -90,14 +89,14 @@ namespace WebApplication2.Repository
                 if (cartItem is null)
                     throw new Exception("Not items in cart");
                 else if (cartItem.Quantity == 1)
-                    _appDbContext.CartDetails.Remove(cartItem);
+                    cartItem.Quantity = 1; // set the quantity to 1 instead of removing the item
                 else
                     cartItem.Quantity = cartItem.Quantity - 1;
                 _appDbContext.SaveChanges();
             }
             catch (Exception ex)
             {
-               
+                // handle the exception
             }
             var cartItemCount = await GetCartItemCount(userId);
             return cartItemCount;

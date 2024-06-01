@@ -24,8 +24,9 @@ namespace WebApplication2.Controllers
             _itemRepository = itemRepository;
         }
 
-        public async Task<ViewResult> Index()
+        public async Task<ViewResult> Index(bool success = false)
         {
+            ViewBag.Success = success;
             var data = await _itemRepository.GetDiscountedItems();
             return View(data);
 

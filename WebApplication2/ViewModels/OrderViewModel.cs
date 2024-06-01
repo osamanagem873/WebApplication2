@@ -13,5 +13,7 @@ namespace WebApplication2.ViewModels
         public bool IsDeleted { get; set; }
         public List<OrderDetails> OrderDetails { get; set; }
         public AppUser User { get; set; }
+
+        public PagingInfo PagingInfo { get; set; }
     }
 }

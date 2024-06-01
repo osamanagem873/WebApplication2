@@ -2,7 +2,7 @@
 using WebApplication2.Data;
 using WebApplication2.Models;
 using WebApplication2.ViewModels;
-using static iTextSharp.text.pdf.AcroFields;
+
 
 namespace WebApplication2.Repository
 {
@@ -53,7 +53,7 @@ namespace WebApplication2.Repository
 
         public async Task<List<ItemModel>> GetDiscountedItems()
         {
-            return await _context.Items.Where(x=>x.Discount != null).Include(x => x.Category).OrderBy(x => Guid.NewGuid())
+            return await _context.Items.Where(x => x.Discount != null).Include(x => x.Category).OrderBy(x => Guid.NewGuid())
                  .Select(item => new ItemModel()
                  {
                      Id = item.Id,
@@ -97,17 +97,17 @@ namespace WebApplication2.Repository
             _context.Update(item);
             return Save();
         }
-        public bool Delete(Items item)
-        {
-            _context.Remove(item);
-            return Save();
-        }
         public bool Save()
         {
             var saved = _context.SaveChanges();
             return saved > 0;
         }
-     
+        public bool Delete(Items item)
+        {
+            _context.Remove(item);
+            return Save();
+        }
+
         public List<Items> GetAll()
         {
             return _context.Items.Include(i => i.Category).ToList();

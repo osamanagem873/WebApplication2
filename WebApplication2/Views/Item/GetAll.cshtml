@@ -11,13 +11,13 @@
     }
 </style>
 
-<nav class="navbar second-navbar fixed-top navbar-expand-sm navbar-light bg-light navbar-light ">
+<nav class="navbar second-navbar fixed-top navbar-expand-sm navbar-light bg-light navbar-light">
     <a class="navbar-brand" href="#">Categories</a>
     <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav2" aria-controls="navbarNav2" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
     </button>
     <div class="collapse navbar-collapse" id="navbarNav2">
-        <ul class="navbar-nav">
+        <ul class="navbar-nav flex-grow-1">
             <li class="nav-item">
                 <a class="nav-link" asp-controller="Item" asp-action="GetAll">All Categories</a>
             </li>
@@ -28,16 +28,27 @@
                 </li>
             }
         </ul>
+        <ul class="navbar-nav ml-auto">
+            <form class="d-flex" role="search" asp-controller="Item" asp-action="GetAll" method="get">
+                <input class="form-control mr-sm-2" type="search" placeholder="Search" aria-label="Search" name="searchItem" value="@Model.SearchItem">
+                <button class="btn btn-outline-secondary my-2 my-sm-0" type="submit">Search</button>
+            </form>
+        </ul>
     </div>
 </nav>
 
 <div class="container" style="margin-top: 100px;">
+    @if (Model.Items.Count == 0 && !string.IsNullOrEmpty(Model.SearchItem))
+    {
+        <p>No items found for "@Model.SearchItem".</p>
+    }
+    else{
     <div class="row">
         @foreach (var item in Model.Items)
         {
             <div class="col-md-3">
                 <div class="card mb-4 box-shadow">
-                    <img class="card-img-top" src="@item.CoverImageUrl" height="225" alt="Card Image Cap" style="object-fit:contain;">
+                    <img class="card-img-top" src="@item.CoverImageUrl" height="225" width="300" alt="Card Image Cap" style="object-fit:contain;">
                     <div class="card-body">
                         <p class="card-text" style="text-align:center"><strong>@item.Name</strong></p>
                         @if (item.Discount != null)
@@ -51,7 +62,7 @@
 
 
                             <p class=" card-text text-muted me-1" style="text-align:center"><s>$@item.Price.ToString("F2")</s> / <span class="text-danger">$@formattedPrice</span></p>
-                            
+
 
                         }
                         else
@@ -59,9 +70,15 @@
                             <p class="card-text" style="text-align:center">@item.Price.ToString("c")</p>
 
                         }
-                        
+                        @if(User.IsInRole("Admin"))
+                            {
+                                <p class="card-text" style="text-align:center;">Quantity: @item.Quantity</p>
+                            }
+                            
                         @if (item.Quantity > 0)
                         {
+                            
+                            
                             <p class="card-text text-success" style="text-align:center">Available</p>
                         }
                         else
@@ -76,10 +93,31 @@
                                 {
                                     <a type="btn btn-success" asp-controller="Item" asp-action="EditProduct" asp-route-id="@item.Id"
                                        class="btn btn-sm btn-outline-secondary">Edit</a>
-                                    <a type="btn btn-success" asp-controller="Item" asp-action="Delete" asp-route-id="@item.Id"
+                                    <a type="button" onclick="confirmDelete(@item.Id)"
                                        class="btn btn-sm btn-outline-secondary">Delete</a>
+
+                                    <!-- Modal -->
+                                    <div class="modal fade" id="confirmDeleteModal" tabindex="-1" role="dialog"
+                                         aria-labelledby="confirmDeleteModalLabel" aria-hidden="true">
+                                        <div class="modal-dialog" role="document" style="margin-top:60px;">
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <h5 class="modal-title" id="confirmDeleteModalLabel">Confirmation</h5>
+                                                   
+                                                </div>
+                                                <div class="modal-body">
+                                                    Are you sure you want to delete this Product?
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                                    <a id="deleteLink" href="#" class="btn btn-danger">Delete</a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                             
                                 }
-                                @if (SignInManager.IsSignedIn(User) && User.IsInRole("Admin") == false)
+                                @if (SignInManager.IsSignedIn(User) && User.IsInRole("Admin") == false && item.Quantity != 0)
                                 {
                                     <a type="btn btn-success" onclick="add(@item.Id)"
                                        class="btn btn-sm btn-outline-secondary">add to cart</a>
@@ -91,35 +129,58 @@
             </div>
         }
     </div>
+    }
     <div class="row" style="margin-bottom:40px;">
         <div class="col-md-12">
-            
-                <ul class="pagination justify-content-center">
-                    @if (Model.PagingInfo.HasPreviousPage)
-                    {
-                        <li class="page-item">
-                            <a class="page-link" href="@Url.Action("GetAll", new { page = Model.PagingInfo.CurrentPage - 1, pageSize = Model.PagingInfo.ItemsPerPage, categoryId = ViewContext.HttpContext.Request.Query["categoryId"] })" aria-label="Previous">
-                                <span aria-hidden="true">&laquo;</span>
-                            </a>
-                        </li>
-                    }
-                    @for (int i = 1; i <= Model.PagingInfo.TotalPages; i++)
-                    {
-                        <li class="page-item @(i == Model.PagingInfo.CurrentPage ? "active" : "")">
-                            <a class="page-link" href="@Url.Action("GetAll", new { page = i, pageSize = Model.PagingInfo.ItemsPerPage, categoryId = ViewContext.HttpContext.Request.Query["categoryId"] })">@i</a>
-                        </li>
-                    }
-                    @if (Model.PagingInfo.HasNextPage)
-                    {
-                        <li class="page-item">
-                            <a class="page-link" href="@Url.Action("GetAll", new { page = Model.PagingInfo.CurrentPage + 1, pageSize = Model.PagingInfo.ItemsPerPage, categoryId = ViewContext.HttpContext.Request.Query["categoryId"] })" aria-label="Next">
-                                <span aria-hidden="true">&raquo;</span>
-                            </a>
-                        </li>
-                    }
-                </ul>
-            
+
+            <ul class="pagination justify-content-center">
+                @if (Model.PagingInfo.HasPreviousPage)
+                {
+                    <li class="page-item">
+                        <a class="page-link" href="@Url.Action("GetAll", new { page = Model.PagingInfo.CurrentPage - 1, pageSize = Model.PagingInfo.ItemsPerPage, categoryId = ViewContext.HttpContext.Request.Query["categoryId"] })" aria-label="Previous">
+                            <span aria-hidden="true">&laquo;</span>
+                        </a>
+                    </li>
+                }
+                @for (int i = 1; i <= Model.PagingInfo.TotalPages; i++)
+                {
+                    <li class="page-item @(i == Model.PagingInfo.CurrentPage ? "active" : "")">
+                        <a class="page-link" href="@Url.Action("GetAll", new { page = i, pageSize = Model.PagingInfo.ItemsPerPage, categoryId = ViewContext.HttpContext.Request.Query["categoryId"] })">@i</a>
+                    </li>
+                }
+                @if (Model.PagingInfo.HasNextPage)
+                {
+                    <li class="page-item">
+                        <a class="page-link" href="@Url.Action("GetAll", new { page = Model.PagingInfo.CurrentPage + 1, pageSize = Model.PagingInfo.ItemsPerPage, categoryId = ViewContext.HttpContext.Request.Query["categoryId"] })" aria-label="Next">
+                            <span aria-hidden="true">&raquo;</span>
+                        </a>
+                    </li>
+                }
+            </ul>
+
         </div>
     </div>
 </div>
 
+@section Scripts{
+    <script>
+        async function add(itemId) {
+            try {
+                var response = await fetch(`/Cart/AddItem?itemId=${itemId}`);
+                if (response.status == 200) {
+                    var result = await response.json();
+
+                    var cartCountEl = document.getElementById("cartCount");
+                    cartCountEl.innerHTML = result;
+                }
+            }
+            catch (err) {
+                console.log(err);
+            }
+        }
+        function confirmDelete(itemId) {
+            $('#deleteLink').attr('href', '/Item/Delete/' + itemId);
+            $('#confirmDeleteModal').modal('show');
+        }
+    </script>
+    }

@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
@@ -29,13 +30,13 @@ namespace WebApplication2.Controllers
             _cartRepository = cartRepository;
         }
 
-        [Route("signup")]
+     
         public IActionResult SignUp()
         {
             return View();
         }
 
-        [Route("signup")]
+       
         [HttpPost]
         public async Task<IActionResult> SignUp(SignUpModel userModel)
         {
@@ -62,6 +63,7 @@ namespace WebApplication2.Controllers
             return View();
         }
 
+       
         [Route("login")]
         [HttpPost]
         public async Task<IActionResult> Login(SignInModel signInModel)
@@ -73,7 +75,10 @@ namespace WebApplication2.Controllers
                 {
                     return RedirectToAction("Index", "Home");
                 }
-                ModelState.AddModelError("", "Invalid Credentials");
+                else
+                {
+                    ModelState.AddModelError("", "Invalid Credentials");
+                }
             }
             return View(signInModel);
         }
@@ -202,46 +207,37 @@ namespace WebApplication2.Controllers
             return View(model);
         }
 
-
-        [HttpGet]
-        public IActionResult ResetPassword(string code = null)
+        
+        
+        public ViewResult ResetPassword(string uid, string token)
         {
-            if (code == null)
+            ResetPasswordViewModel resetPasswordModel = new ResetPasswordViewModel
             {
-                return BadRequest("A code must be supplied for password reset.");
-            }
-
-            var model = new ResetPasswordViewModel { Code = code };
-            return View(model);
+                Token = token,
+                UserId = uid
+            };
+            return View(resetPasswordModel);
         }
 
-        [HttpPost]
-        [ValidateAntiForgeryToken]
+        [AllowAnonymous, HttpPost("reset-password")]
         public async Task<IActionResult> ResetPassword(ResetPasswordViewModel model)
         {
-            if (!ModelState.IsValid)
+            if (ModelState.IsValid)
             {
-                return View(model);
-            }
+                model.Token = model.Token.Replace(' ', '+');
+                var result = await _accountRepository.ResetPasswordAsync(model);
+                if (result.Succeeded)
+                {
+                    ModelState.Clear();
+                    model.IsSuccess = true;
+                    return View(model);
+                }
 
-            var user = await _userManager.FindByEmailAsync(model.Email);
-            if (user == null)
-            {
-                // Don't reveal that the user does not exist
-                return RedirectToAction("ResetPasswordConfirmation", "Account");
+                foreach (var error in result.Errors)
+                {
+                    ModelState.AddModelError("", error.Description);
+                }
             }
-
-            var result = await _userManager.ResetPasswordAsync(user, model.Code, model.Password);
-            if (result.Succeeded)
-            {
-                return RedirectToAction("ResetPasswordConfirmation", "Account");
-            }
-
-            foreach (var error in result.Errors)
-            {
-                ModelState.AddModelError(string.Empty, error.Description);
-            }
-
             return View(model);
         }
 
@@ -253,14 +249,14 @@ namespace WebApplication2.Controllers
 
         public async Task<IActionResult> Logout()
         {
-            // Delete cart items and set cart item count to zero
+            // Delete cart items and set cart item count to zero if cart item count is not zero
             var userId = _accountRepository.GetUserId();
-            var cartItemCount = 0;
-            if (!string.IsNullOrEmpty(userId))
+            var cartItemCount =  await _cartRepository.GetCartItemCount(userId);
+            if (cartItemCount != 0 && !string.IsNullOrEmpty(userId))
             {
-                cartItemCount = await _cartRepository.DeleteAllCartItems(userId);
+                await _cartRepository.DeleteAllCartItems(userId);
+                
             }
-            HttpContext.Session.SetInt32("CartItemCount", cartItemCount);
 
             // Sign out user and redirect to home page
             await _accountRepository.SignOutAsync();

@@ -1,0 +1,79 @@
+﻿@model OrderViewModel
+<style>
+
+</style>
+
+
+
+
+
+
+    <div class="container">
+        <h4 class="text-center">@Model.User.FirstName's Order</h4>
+        <table class="table table-borderless table-hover">
+            <tr class="text-center">
+                <th>Product</th>
+                <th>Image</th>
+                <th>Unit Price(INR)</th>
+                <th>Total Price</th>
+
+            </tr>
+            @foreach (var item in Model.OrderDetails)
+            {
+                <tr class="text-center">
+                    <td>@item.Items.Name</td>
+                    <td>
+                        <img class="card-img-top" src="@item.Items.CoverImageUrl" style="width:80px;height:80px; object-fit:contain">
+                    </td>
+
+                    <td>@item.Items.Price X @item.Quantity</td>
+                    <td>@(item.Items.Price * item.Quantity)</td>
+
+                </tr>
+            }
+        </table>
+    @if (ViewBag.TotalPages > 1)
+    {
+        <div class="row">
+            <div class="col-sm-12 col-md-6">
+                <p>Page @ViewBag.CurrentPage of @ViewBag.TotalPages</p>
+            </div>
+            <div class="col-sm-12 col-md-6">
+
+                <ul class="pagination justify-content-end">
+                    @if (ViewBag.CurrentPage == 1)
+                    {
+                        <li class="page-item disabled"><a class="page-link" href="#">Previous</a></li>
+                    }
+                    else
+                    {
+                        <li class="page-item"><a class="page-link" href="@Url.Action("OrderDetails", new {page = ViewBag.CurrentPage - 1 })">Previous</a></li>
+                    }
+
+                    @for (int i = 1; i <= ViewBag.TotalPages; i++)
+                    {
+                        if (i == ViewBag.CurrentPage)
+                        {
+                            <li class="page-item active"><a class="page-link" href="#">@i</a></li>
+                        }
+                        else
+                        {
+                            <li class="page-item"><a class="page-link" href="@Url.Action("OrderDetails", new {page = i })">@i</a></li>
+                        }
+                    }
+
+                    @if (ViewBag.CurrentPage == ViewBag.TotalPages)
+                    {
+                        <li class="page-item disabled"><a class="page-link" href="#">Next</a></li>
+                    }
+                    else
+                    {
+                        <li class="page-item"><a class="page-link" href="@Url.Action("OrderDetails", new {page = ViewBag.CurrentPage + 1 })">Next</a></li>
+                    }
+                </ul>
+
+            </div>
+        </div>
+    }
+    </div>
+

@@ -8,6 +8,7 @@ namespace WebApplication2.Repository
     {
         Task <IdentityResult> CreateUserAsync(SignUpModel signUpModel);
         Task<SignInResult> PasswordSignInAsync(SignInModel signInModel);
+        Task<IdentityResult> ResetPasswordAsync(ResetPasswordViewModel model);
         Task SignOutAsync();
         Task<AppUser> GetUserById(string userId);
         Task SendForgotPasswordEmail(AppUser user, string token);

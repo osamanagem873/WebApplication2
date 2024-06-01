@@ -32,6 +32,20 @@ namespace WebApplication2.Repository
                 .ToListAsync();
             return orders;
         }
+        public async Task<IEnumerable<Order>> UserOrders()
+        {
+            var userId = GetUserId();
+            if (string.IsNullOrEmpty(userId))
+                throw new Exception("User is not logged in");
+            var orders = await _appDbContext.Orders
+                .Include(x => x.User)
+                .Include(x => x.OrderStatus)
+                .Include(x => x.OrderDetails)
+                .ThenInclude(x => x.Items)
+                .Where(x=>x.UserId == userId && (x.OrderStatusId == 1 || x.OrderStatusId == 3))
+                .ToListAsync();
+            return orders;
+        }
 
         public async Task<Order?> GetByIdAsync(int id)
         {

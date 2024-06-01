@@ -1,4 +1,5 @@
-﻿using iTextSharp.text;
+﻿
+using iTextSharp.text;
 using iTextSharp.text.pdf;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -27,22 +28,131 @@ namespace WebApplication2.Controllers
             _itemRepository = itemRepository;
         }
 
-        public async Task<IActionResult> UserOrders()
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> UsersOrders(string sortOrder, string statusFilter, string search, int page = 1, int pageSize = 6)
         {
-            var orders =  await _userOrderRepository.UsersOrders();
-         
-            
+            // Define the sorting parameters based on the sortOrder parameter
+            ViewBag.IdSortParam = sortOrder == "id_asc" ? "id_desc" : "id_asc";
+            ViewBag.DateSortParam = sortOrder == "date_asc" ? "date_desc" : "date_asc";
+
+            // Retrieve the orders from the repository
+            var orders = await _userOrderRepository.UsersOrders();
+
+            // Filter the orders based on the selected OrderStatus filter
+            if (!string.IsNullOrEmpty(statusFilter))
+            {
+                if (statusFilter == "All Statuses")
+                {
+                    ViewBag.SelectedStatusFilter = "All Statuses";
+                }
+                else
+                {
+                    orders = orders.Where(o => o.OrderStatus.StatusName.Contains(statusFilter)).ToList();
+                    ViewBag.SelectedStatusFilter = statusFilter;
+                }
+            }
+
+            // Apply the search term filter
+            if (!string.IsNullOrEmpty(search))
+            {
+                search = search.ToLower(); // Convert search string to lowercase
+                orders = orders.Where(o =>
+                    o.User.FirstName.ToLower().Contains(search)
+                    || o.User.LastName.ToLower().Contains(search)
+                    || o.User.Email.ToLower().Contains(search)
+                    || o.Id.ToString().ToLower().Contains(search)
+                ).ToList();
+            }
+
+            // Apply the sorting based on the sortOrder parameter
+            switch (sortOrder)
+            {
+                case "id_asc":
+                    orders = orders.OrderBy(o => o.Id).ToList();
+                    break;
+                case "id_desc":
+                    orders = orders.OrderByDescending(o => o.Id).ToList();
+                    break;
+                case "date_asc":
+                    orders = orders.OrderBy(o => o.CreateDate).ToList();
+                    break;
+                case "date_desc":
+                    orders = orders.OrderByDescending(o => o.CreateDate).ToList();
+                    break;
+                default:
+                    orders = orders.OrderByDescending(o => o.CreateDate).ToList();
+                    break;
+            }
+
+            // Get the distinct OrderStatus values from the orders
+            var statusList = _appDbContext.OrderStatus.Select(o => o.StatusName).Distinct().ToList();
+
+            // Insert "All Statuses" at the beginning of the statusList
+            statusList.Insert(0, "All Statuses");
+
+            ViewBag.StatusList = statusList;
+
+            // Apply pagination to the orders
+            int totalItems = orders.Count();
+            orders = orders.Skip((page - 1) * pageSize).Take(pageSize).ToList();
+
+            // Pass the pagination information to the view
+            ViewBag.CurrentPage = page;
+            ViewBag.PageSize = pageSize;
+            ViewBag.TotalItems = totalItems;
+            ViewBag.TotalPages = (int)Math.Ceiling((double)totalItems / pageSize);
+
+            // Pass the search term to the view
+            ViewBag.SearchTerm = search;
+
             return View(orders);
         }
-        [HttpGet]
-        public async Task<ViewResult> Edit(int id)
+        
+        public async Task<IActionResult> UserOrders(string sortOrder, string statusFilter, int page = 1, int pageSize = 6)
         {
-            
+            // Define the sorting parameters based on the sortOrder parameter
+            ViewBag.IdSortParam = sortOrder == "id_asc" ? "id_desc" : "id_asc";
+            ViewBag.DateSortParam = sortOrder == "date_asc" ? "date_desc" : "date_asc";
+            var orders = await _userOrderRepository.UserOrders();
+            switch (sortOrder)
+            {
+                case "id_asc":
+                    orders = orders.OrderBy(o => o.Id).ToList();
+                    break;
+                case "id_desc":
+                    orders = orders.OrderByDescending(o => o.Id).ToList();
+                    break;
+                case "date_asc":
+                    orders = orders.OrderBy(o => o.CreateDate).ToList();
+                    break;
+                case "date_desc":
+                    orders = orders.OrderByDescending(o => o.CreateDate).ToList();
+                    break;
+                default:
+                    orders = orders.OrderByDescending(o => o.CreateDate).ToList();
+                    break;
+            }
+            // Apply pagination to the orders
+            int totalItems = orders.Count();
+            orders = orders.Skip((page - 1) * pageSize).Take(pageSize).ToList();
+
+            // Pass the pagination information to the view
+            ViewBag.CurrentPage = page;
+            ViewBag.PageSize = pageSize;
+            ViewBag.TotalItems = totalItems;
+            ViewBag.TotalPages = (int)Math.Ceiling((double)totalItems / pageSize);
+
+            return View(orders);
+        }
+   
+        public async Task<ViewResult> OrderDetails(int id ,  int page = 1, int pageSize = 3)
+        {
+
             var order = await _userOrderRepository.GetByIdAsync(id);
-            
+
             if (order == null) return View("Error");
             var orderVm = new OrderViewModel
-            { 
+            {
                 OrderDetails = order.OrderDetails,
                 UserId = order.UserId,
                 Id = order.Id,
@@ -50,13 +160,119 @@ namespace WebApplication2.Controllers
                 OrderStatusId = order.OrderStatusId,
                 User = order.User,
                 CreateDate = order.CreateDate
-                
+
 
 
             };
-            ViewBag.OrderStatus = new SelectList(_appDbContext.OrderStatus, "Id", "StatusName");
+            int totalItems = orderVm.OrderDetails.Count();
+            orderVm.OrderDetails = order.OrderDetails.Skip((page - 1) * pageSize).Take(pageSize).ToList();
+
+            // Pass the pagination information to the view
+            ViewBag.CurrentPage = page;
+            ViewBag.PageSize = pageSize;
+            ViewBag.TotalItems = totalItems;
+            ViewBag.TotalPages = (int)Math.Ceiling((double)totalItems / pageSize);
+            ViewBag.OrderStatus = _appDbContext.OrderStatus.ToList();
             return View(orderVm);
         }
+        public async Task<IActionResult> CancelOrder(int id)
+        {
+
+            var order = await _userOrderRepository.GetByIdAsync(id);
+
+            if (order == null) return View("Error");
+            order.OrderStatusId = 2;
+            _appDbContext.Orders.Update(order);
+            _appDbContext.SaveChanges();
+            return RedirectToAction("UserOrders");
+        }
+
+
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> DeleteOrder(int id)
+        {
+            var order = await _userOrderRepository.GetByIdAsync(id);
+            _userOrderRepository.Delete(order);
+            return RedirectToAction("UsersOrders");
+        }
+
+        [Authorize(Roles = "Admin")]
+        [HttpGet]
+        public async Task<ViewResult> Edit(int id, int page = 1, int pageSize = 3)
+        {
+
+            var order = await _userOrderRepository.GetByIdAsync(id);
+
+            if (order == null) return View("Error");
+            var orderVm = new OrderViewModel
+            {
+                OrderDetails = order.OrderDetails,
+                UserId = order.UserId,
+                Id = order.Id,
+                OrderStatus = order.OrderStatus,
+                OrderStatusId = order.OrderStatusId,
+                User = order.User,
+                CreateDate = order.CreateDate
+
+
+
+            };
+            int totalItems = orderVm.OrderDetails.Count();
+            orderVm.OrderDetails = order.OrderDetails.Skip((page - 1) * pageSize).Take(pageSize).ToList();
+
+            // Pass the pagination information to the view
+            ViewBag.CurrentPage = page;
+            ViewBag.PageSize = pageSize;
+            ViewBag.TotalItems = totalItems;
+            ViewBag.TotalPages = (int)Math.Ceiling((double)totalItems / pageSize);
+            ViewBag.OrderStatus = _appDbContext.OrderStatus.ToList();
+            return View(orderVm);
+        }
+
+        [Authorize(Roles = "Admin")]
+        [HttpPost]
+        public async Task<IActionResult> Edit(OrderViewModel orderVm)
+        {
+           
+            
+           
+            var order1 = new Order
+            {
+                UserId = orderVm.UserId,
+                User = orderVm.User,
+                Id = orderVm.Id,
+                OrderDetails = orderVm.OrderDetails,
+                OrderStatusId = orderVm.OrderStatusId,
+                OrderStatus = orderVm.OrderStatus,
+                CreateDate = orderVm.CreateDate,
+
+            };
+            if(orderVm.OrderStatusId == 3)
+            {
+                var Data = order1.OrderDetails.ToList().Where(x => x.OrderId == orderVm.Id);
+                foreach (var data in Data)
+                {
+                    var item = _appDbContext.Items.AsNoTracking().FirstOrDefault(x => x.Id == data.ItemsId);
+                    if (item != null)
+                    {
+                        item.Quantity -= data.Quantity;
+                        _itemRepository.Update(item);
+                    }
+                }
+                _userOrderRepository.Update(order1);
+            }
+            else
+            {
+                _userOrderRepository.Update(order1);
+            }
+
+            _appDbContext.SaveChanges();
+
+
+
+            return RedirectToAction("UsersOrders");
+        }
+
         public async Task<FileResult> DownloadOrderPdf(int id)
         {
             // Get the order details using the order ID
@@ -73,7 +289,7 @@ namespace WebApplication2.Controllers
                 document.Open();
 
                 // Add the order details to the PDF document
-                Paragraph orderDetails = new Paragraph("Order Details",FontFactory.GetFont(FontFactory.HELVETICA_BOLD,30));
+                Paragraph orderDetails = new Paragraph("Order Details", FontFactory.GetFont(FontFactory.HELVETICA_BOLD, 30));
                 orderDetails.Alignment = Element.ALIGN_CENTER;
                 document.Add(orderDetails);
 
@@ -111,7 +327,7 @@ namespace WebApplication2.Controllers
                     table.AddCell((item.UnitPrice * item.Quantity).ToString());
                 }
 
-               
+
                 document.Add(table);
 
                 // Add a "Thank you for your order" message after the table
@@ -150,7 +366,7 @@ namespace WebApplication2.Controllers
                 Paragraph websiteName = new Paragraph("www.Estore.com", FontFactory.GetFont(FontFactory.HELVETICA, 14));
                 websiteName.Alignment = Element.ALIGN_CENTER;
                 document.Add(websiteName);
-            
+
             }
             finally
             {
@@ -162,59 +378,6 @@ namespace WebApplication2.Controllers
 
             // Return the PDF file as a FileResult
             return File(memoryStream.ToArray(), "application/pdf", "Order_" + order.Id + ".pdf");
-        }
-        public async Task<IActionResult> DeleteOrder(int id)
-        {
-            var order = await _userOrderRepository.GetByIdAsync(id);
-            _userOrderRepository.Delete(order);
-            return RedirectToAction("UserOrders");
-        }
-
-        [HttpPost]
-        public async Task<IActionResult> Edit(OrderViewModel orderVm)
-        {
-           
-            
-           
-            var order1 = new Order
-            {
-                UserId = orderVm.UserId,
-                User = orderVm.User,
-                Id = orderVm.Id,
-                OrderDetails = orderVm.OrderDetails,
-                OrderStatusId = orderVm.OrderStatusId,
-                OrderStatus = orderVm.OrderStatus,
-                CreateDate = orderVm.CreateDate,
-
-            };
-            if(orderVm.OrderStatusId == 3)
-            {
-                var Data = order1.OrderDetails.ToList().Where(x => x.OrderId == orderVm.Id);
-                foreach (var data in Data)
-                {
-                    var item = _appDbContext.Items.AsNoTracking().FirstOrDefault(x => x.Id == data.ItemsId);
-                    if (item != null)
-                    {
-                        item.Quantity -= data.Quantity;
-                        _itemRepository.Update(item);
-                    }
-                }
-                _userOrderRepository.Update(order1);
-            }
-            if(orderVm.OrderStatusId == 2)
-            {
-                _userOrderRepository.Delete(order1);
-            }
-            else
-            {
-                _userOrderRepository.Update(order1);
-            }
-
-            _appDbContext.SaveChanges();
-
-
-
-            return RedirectToAction("UserOrders");
         }
 
     }

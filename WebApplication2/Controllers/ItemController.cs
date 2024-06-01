@@ -8,6 +8,7 @@ using WebApplication2.Models;
 using WebApplication2.Repository;
 using WebApplication2.ViewModels;
 
+
 namespace WebApplication1.Controllers
 {
     public class ItemController : Controller
@@ -81,12 +82,19 @@ namespace WebApplication1.Controllers
                     return RedirectToAction(nameof(AddNewItem), new { isSuccess = true, itemId = id });
                 }
             }
-
-            return View();
+            ViewBag.Category = new SelectList(_appDbContext.Categories, "Id", "Name", itemModel.CategoryId);
+            return View(itemModel);
         }
-        public async Task<IActionResult> GetAll(int? categoryId, int page = 1, int pageSize = 12)
+        public async Task<IActionResult> GetAll(int? categoryId, string searchItem, int page = 1, int pageSize = 12)
         {
             var items = _itemRepository.GetAll();
+
+            if (!string.IsNullOrEmpty(searchItem))
+            {
+                var searchQuery = searchItem.ToLower();
+
+                items = items.Where(i => i.Name.ToLower().Contains(searchQuery) || i.Category.Name.ToLower().Contains(searchQuery)).ToList();
+            }
 
             if (categoryId != null)
             {
@@ -106,8 +114,11 @@ namespace WebApplication1.Controllers
             {
                 Items = items.Skip((page - 1) * pageSize).Take(pageSize).ToList(),
                 Categories = categories,
-                PagingInfo = pagingInfo
+                PagingInfo = pagingInfo,
+                SearchItem = searchItem
             };
+
+            ViewBag.SearchItem = searchItem;
 
             return View(itemList);
         }
@@ -133,7 +144,7 @@ namespace WebApplication1.Controllers
      
         [HttpGet]
         [Authorize(Roles = "Admin")]
-        public IActionResult EditProduct(int id)
+        public IActionResult EditProduct(int id, bool isSuccess = false)
         {
             var item = _appDbContext.Items.Where(x=>x.Id==id).Include(x => x.Category).Include(x => x.ItemGallery).Select(x => new ItemModel()
             {
@@ -154,6 +165,8 @@ namespace WebApplication1.Controllers
 
             }).FirstOrDefault();
             ViewBag.Category = new SelectList(_appDbContext.Categories, "Id", "Name" , item.CategoryId);
+            ViewBag.IsSuccess = isSuccess;
+            ViewBag.ItemId = id;
             return View(item);
         }
         [Authorize(Roles = "Admin")]
@@ -228,17 +241,18 @@ namespace WebApplication1.Controllers
 
                 _itemRepository.Update(NewItem);
 
-                return RedirectToAction("GetAll");
-                
+                return RedirectToAction(nameof(EditProduct), new { isSuccess = true, id = vm.Id });
+
 
             }
             return View();
 
         }
+       
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Delete(int id)
         {
-            var item = await _appDbContext.Items.Where(x=>x.Id == id).FirstOrDefaultAsync();
+            var item = await _appDbContext.Items.Where(x => x.Id == id).FirstOrDefaultAsync();
             _itemRepository.Delete(item);
             return RedirectToAction("GetAll");
         }

@@ -18,14 +18,7 @@ namespace WebApplication2.Services
         private const string templatePath = @"EmailTemplate/{0}.html";
         private readonly SMTPConfigModel _smtpConfig;
 
-        public async Task SendTestEmail(UserEmailOptions userEmailOptions)
-        {
-            userEmailOptions.Subject = UpdatePlaceHolders("Hello {{UserName}}, This is test email subject from book store web app", userEmailOptions.PlaceHolders);
-
-            userEmailOptions.Body = UpdatePlaceHolders(GetEmailBody("TestEmail"), userEmailOptions.PlaceHolders);
-
-            await SendEmail(userEmailOptions);
-        }
+   
 
         public async Task SendEmailForEmailConfirmation(UserEmailOptions userEmailOptions)
         {

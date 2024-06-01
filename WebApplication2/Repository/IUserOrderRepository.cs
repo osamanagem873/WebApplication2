@@ -10,6 +10,7 @@ namespace WebApplication2.Repository
         bool Save();
         bool Update(Order order);
 
+        Task<IEnumerable<Order>> UserOrders();
         Task<Order?> GetByIdAsync(int id);
         Task<Order?> GetByIdAsyncNoTracking(int id);
         bool Delete(Order order);
